@@ -16,12 +16,12 @@ inputs:
     description:
       'S3 file or directory name. Do not use backslash "/" at the end.'
     required: true
-  acl:
-    description:
-      'S3 access control lists (ACL). See:
-      https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl'
-    required: true
-    default: 'private'
+  # acl:
+  #   description:
+  #     'S3 access control lists (ACL). See:
+  #     https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl'
+  #   required: true
+  #   default: 'private'
   access_key_id:
     description: 'S3 Access Key ID'
     required: true
@@ -39,7 +39,7 @@ inputs:
     description: 'S3 Endpoint URL'
     required: false
 # outputs:
-#   time:
+#   s3_responses:
 #     description: "Your output description here"
 runs:
   using: 'node20'
