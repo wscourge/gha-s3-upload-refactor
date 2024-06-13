@@ -73,17 +73,20 @@ Sensitive information, especially `key_id` and `secret_access_key`, should be
 [set as encrypted secrets](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables)
 — otherwise, they'll be public to anyone browsing your repository's source code.
 
-| variable            | description                                                                                                                                     | default                                                                                                                        |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --- | --- |
-| `access_key_id`     | (required) Your S3 Access Key. [More info here.](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)                   |                                                                                                                                |
-| `secret_access_key` | (required) Your S3 Secret Access Key. [More info here.](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)            |                                                                                                                                |
-| `bucket`            | (required) The name of the S3 bucket.                                                                                                           |                                                                                                                                |
-| `region`            | (required) The name of the S3 region.                                                                                                           | `"us-east-1"`                                                                                                                  |
-| `source`            | (required) The local directory or file you wish to upload to S3.                                                                                |                                                                                                                                |
-| `destination`       | (required) The destination directory in S3.                                                                                                     |                                                                                                                                |
-| `acl`               | (optional) S3 access control lists (ACL). [More info here.](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl) | `"private"`                                                                                                                    |
-| `endpoint`          | (optional) The endpoint URI to send requests to. [More info here.](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html)             |                                                                                                                                |
-| <!--                | `cache_control`                                                                                                                                 | (optional) The Cache-Control general-header. [More info here.](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) |     | --> |
+| variable            | required | description                                                                                                               | default       |
+| ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `access_key_id`     | yes      | Your S3 Access Key. [More info here.](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)        |               |
+| `secret_access_key` | yes      | Your S3 Secret Access Key. [More info here.](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html) |               |
+| `bucket`            | yes      | The name of the S3 bucket.                                                                                                |               |
+| `region`            | yes      | The name of the S3 region.                                                                                                | `"us-east-1"` |
+| `source`            | yes      | The local directory or file you wish to upload to S3.                                                                     |               |
+| `destination`       | yes      | The destination directory in S3.                                                                                          |               |
+| `endpoint`          | no       | The endpoint URI to send requests to. [More info here.](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html)  |               |
+
+---
+
+<!-- | `acl`                   | no       | S3 access control lists (ACL). [More info here.](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl) | `"private"`   | -->
+<!-- | `cache_control`         | no       | The Cache-Control general-header. [More info here.](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9)             |               | -->
 
 Notes:
 
