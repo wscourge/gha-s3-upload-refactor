@@ -1,21 +1,23 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
+  "name": "gha-s3-upload",
+  "description": "A cross-platform (Node.js-based) Github Action to upload files and/or directories to S3-compatible storage providers.",
+  "license": "MIT",
   "version": "0.0.0",
-  "author": "",
-  "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "author": "Wiktor Plaga",
+  "homepage": "https://github.com/wscourge/gha-s3-upload",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/wscourge/gha-s3-upload.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/wscourge/gha-s3-upload/issues"
   },
   "keywords": [
+    "github",
     "actions",
-    "node",
-    "setup"
+    "s3",
+    "aws",
+    "upload"
   ],
   "exports": {
     ".": "./dist/index.js"
@@ -35,7 +37,6 @@
     "test": "npx jest",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
-  "license": "MIT",
   "jest": {
     "preset": "ts-jest",
     "verbose": true,
@@ -68,13 +69,17 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@aws-sdk/client-s3": "^3.596.0",
+    "lodash": "^4.17.21",
     "mime": "^4.0.3",
     "recursive-readdir": "^2.2.3"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.17.5",
+    "@types/mime": "^4.0.0",
     "@types/node": "^20.14.2",
+    "@types/recursive-readdir": "^2.2.4",
     "@typescript-eslint/eslint-plugin": "^7.12.0",
     "@typescript-eslint/parser": "^7.12.0",
     "@vercel/ncc": "^0.38.1",

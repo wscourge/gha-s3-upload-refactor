@@ -1,37 +1,110 @@
-# Create a GitHub Action Using TypeScript
+# S3 Upload Github Action
 
-[![GitHub Super-Linter](https://github.com/actions/typescript-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
-![CI](https://github.com/actions/typescript-action/actions/workflows/ci.yml/badge.svg)
-[![Check dist/](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml)
-[![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
+A cross-platform (Node.js-based) Github Action to upload files and/or
+directories to S3-compatible storage providers.
 
-Use this template to bootstrap the creation of a TypeScript action. :rocket:
+## Usage
 
-This template includes compilation support, tests, a validation workflow,
-publishing, and versioning guidance.
+All of the following are to be added to your _.github/workflows/workflow.yml_.
 
-If you are new, there's also a simpler introduction in the
-[Hello world JavaScript action repository](https://github.com/actions/hello-world-javascript-action).
+### Single file upload
 
-## Create Your Own Action
+The following will upload a single _file.txt_ file from
+_/tmp/path/to/dir/file.txt_ absolute path and save it as a
+_path/on/s3/file.txt_:
 
-To create your own action, you can use this repository as a template! Just
-follow the below instructions:
+```yaml
+name: Test Run
+on: push
+jobs:
+  lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: prepare a single file
+        run: |
+          mkdir -p /tmp/path/to/dir
+          echo "Inside /tmp/path/to/dir/file.txt" >> /tmp/path/to/dir/file.txt
+      - uses: wscourge/gha-s3-upload@main
+        with:
+          source: '/tmp/path/to/dir/file.txt'
+          destination: 'path/on/s3'
+          region: ${{ vars.S3_REGION }}
+          bucket: 'my-bucket'
+          endpoint: ${{ vars.S3_ENDPOINT }}
+          access_key_id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          secret_access_key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+```
 
-1. Click the **Use this template** button at the top of the repository
-1. Select **Create a new repository**
-1. Select an owner and name for your new repository
-1. Click **Create repository**
-1. Clone your new repository
+### Recursive directory upload
 
-> [!IMPORTANT]
->
-> Make sure to remove or update the [`CODEOWNERS`](./CODEOWNERS) file! For
-> details on how to use this file, see
-> [About code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+The following will upload all 4 files from _/tmp/path_ absolute path and save
+them with a _path/on/s3/_ prefix:
 
-## Initial Setup
+```yaml
+name: Test Run
+on: push
+jobs:
+  lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: prepare directiories
+        run: |
+          mkdir -p /tmp/path/to/nested/dir
+          echo "Inside /tmp/path/file.txt" >> /tmp/path/file.txt
+          echo "Inside /tmp/path/to/file.txt" >> /tmp/path/to/file.txt
+          echo "Inside /tmp/path/to/nested/file.txt" >> /tmp/path/to/nested/file.txt
+          echo "Inside /tmp/path/to/nested/dir/file.txt" >> /tmp/path/to/nested/dir/file.txt
+      - uses: wscourge/gha-s3-upload@main
+        with:
+          source: '/tmp/path'
+          destination: 'path/on/s3'
+          region: ${{ vars.S3_REGION }}
+          bucket: 'my-bucket'
+          endpoint: ${{ vars.S3_ENDPOINT }}
+          access_key_id: ${{ secrets.S3_ACCESS_KEY_ID }}
+          secret_access_key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+```
+
+## Action inputs
+
+Sensitive information, especially `key_id` and `secret_access_key`, should be
+[set as encrypted secrets](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables)
+— otherwise, they'll be public to anyone browsing your repository's source code.
+
+| variable            | description                                                                                                                                     | default                                                                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --- | --- |
+| `access_key_id`     | (required) Your S3 Access Key. [More info here.](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)                   |                                                                                                                                |
+| `secret_access_key` | (required) Your S3 Secret Access Key. [More info here.](https://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)            |                                                                                                                                |
+| `bucket`            | (required) The name of the S3 bucket.                                                                                                           |                                                                                                                                |
+| `region`            | (required) The name of the S3 region.                                                                                                           | `"us-east-1"`                                                                                                                  |
+| `source`            | (required) The local directory or file you wish to upload to S3.                                                                                |                                                                                                                                |
+| `destination`       | (required) The destination directory in S3.                                                                                                     |                                                                                                                                |
+| `acl`               | (optional) S3 access control lists (ACL). [More info here.](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl) | `"private"`                                                                                                                    |
+| `endpoint`          | (optional) The endpoint URI to send requests to. [More info here.](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html)             |                                                                                                                                |
+| <!--                | `cache_control`                                                                                                                                 | (optional) The Cache-Control general-header. [More info here.](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9) |     | --> |
+
+Notes:
+
+- Set `destination` to an empty string `""` to upload to S3's root directory.
+- Set `destination` to a file name, e.g.: `"me.json"` (or `"path/to/me.json"`)
+  to rename a single file that is being uploaded.
+- **Do not set the following backslash** at the end of `source` and
+  `destination` directory names.
+
+<!-- ## Action outputs -->
+
+<!-- **TODO:** `s3_response` with an array of `$metadata` and `Location` response
+body fields for each uploaded file. -->
+
+<!-- | name               | description                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `s3_response`      | `$metadata` and `Location` response body fields                                         | -->
+
+## Development
+
+### Initial Setup
 
 After you've cloned the repository to your local machine or codespace, you'll
 need to perform some initial setup steps before you can develop your action.
@@ -71,159 +144,3 @@ need to perform some initial setup steps before you can develop your action.
 
    ...
    ```
-
-## Update the Action Metadata
-
-The [`action.yml`](action.yml) file defines metadata about your action, such as
-input(s) and output(s). For details about this file, see
-[Metadata syntax for GitHub Actions](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions).
-
-When you copy this repository, update `action.yml` with the name, description,
-inputs, and outputs for your action.
-
-## Update the Action Code
-
-The [`src/`](./src/) directory is the heart of your action! This contains the
-source code that will be run when your action is invoked. You can replace the
-contents of this directory with your own code.
-
-There are a few things to keep in mind when writing your action code:
-
-- Most GitHub Actions toolkit and CI/CD operations are processed asynchronously.
-  In `main.ts`, you will see that the action is run in an `async` function.
-
-  ```javascript
-  import * as core from '@actions/core'
-  //...
-
-  async function run() {
-    try {
-      //...
-    } catch (error) {
-      core.setFailed(error.message)
-    }
-  }
-  ```
-
-  For more information about the GitHub Actions toolkit, see the
-  [documentation](https://github.com/actions/toolkit/blob/master/README.md).
-
-So, what are you waiting for? Go ahead and start customizing your action!
-
-1. Create a new branch
-
-   ```bash
-   git checkout -b releases/v1
-   ```
-
-1. Replace the contents of `src/` with your action code
-1. Add tests to `__tests__/` for your source code
-1. Format, test, and build the action
-
-   ```bash
-   npm run all
-   ```
-
-   > This step is important! It will run [`ncc`](https://github.com/vercel/ncc)
-   > to build the final JavaScript action code with all dependencies included.
-   > If you do not run this step, your action will not work correctly when it is
-   > used in a workflow. This step also includes the `--license` option for
-   > `ncc`, which will create a license file for all of the production node
-   > modules used in your project.
-
-1. Commit your changes
-
-   ```bash
-   git add .
-   git commit -m "My first action is ready!"
-   ```
-
-1. Push them to your repository
-
-   ```bash
-   git push -u origin releases/v1
-   ```
-
-1. Create a pull request and get feedback on your action
-1. Merge the pull request into the `main` branch
-
-Your action is now published! :rocket:
-
-For information about versioning your action, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-## Validate the Action
-
-You can now validate the action by referencing it in a workflow file. For
-example, [`ci.yml`](./.github/workflows/ci.yml) demonstrates how to reference an
-action in the same repository.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: ./
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-For example workflow runs, check out the
-[Actions tab](https://github.com/actions/typescript-action/actions)! :rocket:
-
-## Usage
-
-After testing, you can create version tag(s) that developers can use to
-reference different stable versions of your action. For more information, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-To include the action in a workflow in another repository, you can use the
-`uses` syntax with the `@` symbol to reference a specific branch, tag, or commit
-hash.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: actions/typescript-action@v1 # Commit with the `v1` tag
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-## Publishing a New Release
-
-This project includes a helper script, [`script/release`](./script/release)
-designed to streamline the process of tagging and pushing new releases for
-GitHub Actions.
-
-GitHub Actions allows users to select a specific version of the action to use,
-based on release tags. This script simplifies this process by performing the
-following steps:
-
-1. **Retrieving the latest release tag:** The script starts by fetching the most
-   recent release tag by looking at the local data available in your repository.
-1. **Prompting for a new release tag:** The user is then prompted to enter a new
-   release tag. To assist with this, the script displays the latest release tag
-   and provides a regular expression to validate the format of the new tag.
-1. **Tagging the new release:** Once a valid new tag is entered, the script tags
-   the new release.
-1. **Pushing the new tag to the remote:** Finally, the script pushes the new tag
-   to the remote repository. From here, you will need to create a new release in
-   GitHub and users can easily reference the new tag in their workflows.
